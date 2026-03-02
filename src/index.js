@@ -132,7 +132,7 @@ async function authenticate(request, db) {
 
 async function login(request, db, corsHeaders) {
   const { username, password } = await request.json();
-  console.log("进入login", username, password);
+
   if (!username || !password) {
     return jsonResponse({ error: '请输入用户名和密码' }, 400, corsHeaders);
   }
@@ -144,19 +144,16 @@ async function login(request, db, corsHeaders) {
     .first();
 
   if (!user) {
-    return jsonResponse({ error: '用户名或密码错误' }, 200, corsHeaders);
+    return jsonResponse({ error: '用户名或密码错误.' }, 200, corsHeaders);
   }
 
   // 2. 使用数据库里的盐对输入的密码进行哈希
   const inputPasswordHash = await hashPassword(password, user.salt || "");
 
-  //测试代码
-  console.log("输入密码产生的哈希:", inputPasswordHash);
-  console.log("数据库存的哈希:", user.password);
 
   // 3. 比较哈希值
   if (inputPasswordHash !== user.password) {
-    return jsonResponse({ error: '用户名或密码错误' }, 401, corsHeaders);
+    return jsonResponse({ error: '用户名或密码错误!' }, 401, corsHeaders);
   }
 
   // 4. 验证通过，生成 Token
