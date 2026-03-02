@@ -124,15 +124,29 @@ async function login(request, db, corsHeaders) {
   if (!username || !password) {
     return jsonResponse({ error: '请输入用户名和密码' }, 400, corsHeaders);
   }
+
+  // 1. 先只根据用户名查出用户信息（包括哈希后的密码和盐）
   const user = await db
-    .prepare('SELECT id, username FROM users WHERE username = ? AND password = ?')
-    .bind(username, password)
+    .prepare('SELECT id, username, password, salt FROM users WHERE username = ?')
+    .bind(username)
     .first();
+
   if (!user) {
     return jsonResponse({ error: '用户名或密码错误' }, 401, corsHeaders);
   }
+
+  // 2. 使用数据库里的盐对输入的密码进行哈希
+  const inputPasswordHash = await hashPassword(password, user.salt || "");
+
+  // 3. 比较哈希值
+  if (inputPasswordHash !== user.password) {
+    return jsonResponse({ error: '用户名或密码错误' }, 401, corsHeaders);
+  }
+
+  // 4. 验证通过，生成 Token
   const token = generateToken();
   await db.prepare('INSERT INTO sessions (token, user_id) VALUES (?, ?)').bind(token, user.id).run();
+  
   return new Response(JSON.stringify({ id: user.id, username: user.username }), {
     status: 200,
     headers: {
@@ -222,4 +236,42 @@ async function deleteNote(id, db, corsHeaders, userId) { // 增加 userId 参数
   }
 
   return jsonResponse({ success: true }, 200, corsHeaders);
+}
+
+
+
+// 将密码转换为哈希
+async function hashPassword(password, salt) {
+  const encoder = new TextEncoder();
+  const passwordKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+
+  const saltBuffer = encoder.encode(salt);
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: saltBuffer,
+      iterations: 100000, // 迭代次数，越多越安全但越慢
+      hash: 'SHA-256',
+    },
+    passwordKey,
+    256 // 生成 256 位哈希
+  );
+
+  // 转为十六进制字符串存储
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// 生成随机盐
+function generateSalt() {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
 }
