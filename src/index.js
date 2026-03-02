@@ -41,7 +41,7 @@ export default {
           const newSalt = "123@567890abcdeF1234567890abcdef";
           const newHash = await hashPassword("654123a", newSalt);
           await env.DB.prepare('UPDATE users SET password = ?, salt = ? WHERE username = ?')
-            .bind(newHash, newSalt, 'admin')
+            .bind(newHash, newSalt, 'testfish')
             .run();
           return new Response("管理员密码已重置为 654123a");
         }
