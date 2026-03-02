@@ -138,6 +138,10 @@ async function login(request, db, corsHeaders) {
   // 2. 使用数据库里的盐对输入的密码进行哈希
   const inputPasswordHash = await hashPassword(password, user.salt || "");
 
+  //测试代码
+  console.log("输入密码产生的哈希:", inputPasswordHash);
+  console.log("数据库存的哈希:", user.password);
+
   // 3. 比较哈希值
   if (inputPasswordHash !== user.password) {
     return jsonResponse({ error: '用户名或密码错误' }, 401, corsHeaders);
