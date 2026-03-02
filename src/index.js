@@ -38,12 +38,12 @@ export default {
       }
 
       if (pathname === '/api/reset-admin-debug' && method === 'GET') {
-          const newSalt = "123@567890abcdeF1234567890abcdef";
-          const newHash = await hashPassword("654123a", newSalt);
+          const newSalt = "1234567890abcdeF1234567890abcdef";   //修改 123@567890abcdeF1234567890abcdef
+          const newHash = await hashPassword("your-password", newSalt);  //修改 your-password 为设置的密码
           await env.DB.prepare('UPDATE users SET password = ?, salt = ? WHERE username = ?')
-            .bind(newHash, newSalt, 'testfish')
+            .bind(newHash, newSalt, 'admin')
             .run();
-          return new Response("管理员密码已重置为 654123a");
+          return new Response("管理员密码已重置");
         }
 
       // All other API routes require auth
