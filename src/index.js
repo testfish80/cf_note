@@ -159,7 +159,7 @@ async function login(request, db, corsHeaders) {
   
   const clientIP = request.headers.get('cf-connecting-ip') || '0.0.0.0';
   await db.prepare('INSERT INTO login_logs (user_id, ip, login_at) VALUES (?, ?, datetime('now', '+8 hours'))')
-  .bind(user.id, clientIP)
+  .bind(user.username, clientIP)
   .run();
 
   // 4. 验证通过，生成 Token
