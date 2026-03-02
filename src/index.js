@@ -193,7 +193,7 @@ async function updateNote(id, request, db, corsHeaders) {
     return jsonResponse({ error: 'title is required' }, 400, corsHeaders);
   }
   await db
-    .prepare("UPDATE notes SET title = ?, content = ?, updated_at = datetime('now') WHERE id = ?")
+    .prepare("UPDATE notes SET title = ?, content = ?, updated_at = datetime('now', '+8 hours') WHERE id = ?")
     .bind(title, content || '', id)
     .run();
   return jsonResponse({ id, title, content }, 200, corsHeaders);
