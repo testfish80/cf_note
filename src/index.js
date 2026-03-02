@@ -121,6 +121,7 @@ async function authenticate(request, db) {
 
 async function login(request, db, corsHeaders) {
   const { username, password } = await request.json();
+  console.log("进入login", username, password);
   if (!username || !password) {
     return jsonResponse({ error: '请输入用户名和密码' }, 400, corsHeaders);
   }
