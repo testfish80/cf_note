@@ -132,7 +132,7 @@ async function login(request, db, corsHeaders) {
     .first();
 
   if (!user) {
-    return jsonResponse({ error: '用户名或密码错误' }, 401, corsHeaders);
+    return jsonResponse({ error: '用户名或密码错误' }, 200, corsHeaders);
   }
 
   // 2. 使用数据库里的盐对输入的密码进行哈希
