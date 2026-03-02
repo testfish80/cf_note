@@ -68,10 +68,12 @@ export default {
         if (noteMatch) {
           const id = parseInt(noteMatch[1]);
           if (method === 'PUT') {
-            return await updateNote(id, request, env.DB, corsHeaders);
+            //return await updateNote(id, request, env.DB, corsHeaders);
+            return await updateNote(id, request, env.DB, corsHeaders, session.user_id);
           }
           if (method === 'DELETE') {
-            return await deleteNote(id, env.DB, corsHeaders);
+            //return await deleteNote(id, env.DB, corsHeaders);
+             return await deleteNote(id, env.DB, corsHeaders, session.user_id);
           }
         }
       }
@@ -187,19 +189,37 @@ async function createNote(request, db, corsHeaders, userId) {
   return jsonResponse({ id: result.meta.last_row_id, title, content, user_id: userId }, 201, corsHeaders);
 }
 
-async function updateNote(id, request, db, corsHeaders) {
+async function updateNote(id, request, db, corsHeaders, userId) { // 增加 userId 参数
   const { title, content } = await request.json();
   if (!title) {
-    return jsonResponse({ error: 'title is required' }, 400, corsHeaders);
+    return jsonResponse({ error: '标题不能为空' }, 400, corsHeaders);
   }
-  await db
-    .prepare("UPDATE notes SET title = ?, content = ?, updated_at = datetime('now', '+8 hours') WHERE id = ?")
-    .bind(title, content || '', id)
+
+  // SQL 语句增加 AND user_id = ?
+  const result = await db
+    .prepare("UPDATE notes SET title = ?, content = ?, updated_at = datetime('now', '+8 hours') WHERE id = ? AND user_id = ?")
+    .bind(title, content || '', id, userId)
     .run();
+
+  // 检查是否真的更新了行
+  if (result.meta.changes === 0) {
+    return jsonResponse({ error: '无权修改此笔记或笔记不存在' }, 403, corsHeaders);
+  }
+
   return jsonResponse({ id, title, content }, 200, corsHeaders);
 }
 
-async function deleteNote(id, db, corsHeaders) {
-  await db.prepare('DELETE FROM notes WHERE id = ?').bind(id).run();
+async function deleteNote(id, db, corsHeaders, userId) { // 增加 userId 参数
+  // SQL 语句增加 AND user_id = ?
+  const result = await db
+    .prepare('DELETE FROM notes WHERE id = ? AND user_id = ?')
+    .bind(id, userId)
+    .run();
+
+  // 检查是否真的删除了行
+  if (result.meta.changes === 0) {
+    return jsonResponse({ error: '无权删除此笔记或笔记不存在' }, 403, corsHeaders);
+  }
+
   return jsonResponse({ success: true }, 200, corsHeaders);
 }
