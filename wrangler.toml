@@ -1,6 +1,6 @@
 name = "cf-note"
 main = "src/index.js"
-compatibility_date = "2026-01-15"
+compatibility_date = "2026-02-15"
 
 [[rules]]
 type = "Data"
@@ -9,5 +9,5 @@ fallthrough = false
 
 [[d1_databases]]
 binding = "DB"
-database_name = "cf-note-db"
-database_id = "7a0246d1-a2a3-4ad8-89be-72d91351e44f"
+database_name = "cf-note-sql"
+database_id = "af988028-13af-4fb6-ad0e-3abc65979c79"
