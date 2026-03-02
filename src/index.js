@@ -156,6 +156,8 @@ async function login(request, db, corsHeaders) {
     return jsonResponse({ error: '用户名或密码错误!' }, 401, corsHeaders);
   }
 
+  
+  const clientIP = request.headers.get('cf-connecting-ip') || '0.0.0.0';
   await db.prepare('INSERT INTO login_logs (user_id, ip, login_at) VALUES (?, ?, datetime('now', '+8 hours'))')
   .bind(user.id, clientIP)
   .run();
